@@ -1,23 +1,50 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { createServer } from 'miragejs';
+import { createServer, Model } from 'miragejs';
 import { App } from './App';
 
 createServer({
+  // Banco de Dados interno do mirage
+  models: {
+    transaction: Model,
+  },
+
+  // Para deixar valores pré-cadastrados no Banco de Dados
+  seeds(server) {
+    server.db.loadData({
+      //Sempre o nome do model transaction no plural
+      transactions: [
+        {
+          id: 1,
+          title: 'Freelancer de WebSite',
+          type: 'deposit',
+          category: 'Dev',
+          amount: 6000,
+          createdAt: new Date('2021-02-12 09:00:00'),
+        },
+        {
+          id: 2,
+          title: 'Aluguel',
+          type: 'withdraw',
+          category: 'Casa',
+          amount: 1100,
+          createdAt: new Date('2021-02-14 11:00:00'),
+        },
+      ],
+    });
+  },
   routes() {
     this.namespace = 'api';
 
     this.get('/transactions', () => {
-      return [
-        {
-          id: 1,
-          title: 'Transactions 1',
-          amount: 400,
-          type: 'deposit',
-          category: 'Food',
-          createdAt: new Date(),
-        },
-      ];
+      return this.schema.all('transaction');
+    });
+
+    this.post('/transactions', (schema, request) => {
+      // Estou mandando os dado do meu front em JSON, por isso preciso fazer o parse
+      const data = JSON.parse(request.requestBody);
+
+      return schema.create('transaction', data);
     });
   },
 });
